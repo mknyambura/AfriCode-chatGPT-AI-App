@@ -1,8 +1,8 @@
-import bot from './assets/bot.svg'
-import user from './assets/user.svg'
+import bot from './assets/bot.svg';
+import user from './assets/user.svg';
 
-const form = document.querySelector('form')
-const chatContainer = document.querySelector('#chat-container')
+const form = document.querySelector('form');
+const chatContainer = document.querySelector('#chat-container');
 
 let loadInterval
 
@@ -12,10 +12,10 @@ function loader(element) {
   loadInterval = setInterval(() => {
     element.textContent += '.';
     // If the loading indicator has reached three dots, reset it
-    if (element.textContent === '...'){
+    if (element.textContent === '....'){
       element.textContent = '';
     }
-  }, 300)
+  }, 300);
 }
 // A function that's going to accept the element and text as parameters
 function typeText(element, text){
@@ -25,13 +25,14 @@ function typeText(element, text){
     // if we're still typing, get the character under a specific index 
     // in the text the ai is going to return 
     if(index < text.length){
-      element.innerHTML += text.chartAt(index)
-      index++
+      element.innerHTML += text.charAt(index);
+      index++;
     } else {
-      clearInterval(interval)
+      clearInterval(interval);
     }
   }, 20)
 }
+
 // Generate a unique Id for every single message to be able to map over them
 function generateUniqueId(){
   // in javascript, we generate unique ids by using the current time and date 
@@ -44,13 +45,16 @@ function generateUniqueId(){
   // return an id with a template string of timestamp and hexadecimal string 
   return `id-${timestamp}-${hexadecimalString}`;
 }
+
 function chatStripe(isAi, value, uniqueId){
   return (
     `
     <div class="wrapper ${isAi && 'ai'}">
       <div class="chat">
         <div class="profile">
-        <img src=${isAi ? bot : user} alt="${isAi ? 'bot' : 'user'}" 
+        <img 
+          src=${isAi ? bot : user} 
+          alt="${isAi ? 'bot' : 'user'}" 
         />
         </div>
         <div class="message" id=${uniqueId}>${value}</div>
@@ -63,22 +67,46 @@ function chatStripe(isAi, value, uniqueId){
 const handleSubmit = async(event) => {
   event.preventDefault()
   // get the data that we type into the form 
-  const data  = new FormData(form)
-  // generate the users chat chatStripe
-  chatContainer.innerHTML += chatStripe(false, data.get('prompt'))
+  const data  = new FormData(form);
+  // generate the users chatStripe
+  chatContainer.innerHTML += chatStripe(false, data.get('prompt'));
   // clear the textarea input 
-  form.reset()
+  form.reset();
 
   // bot's chatStripe
-  const uniqueId = generateUniqueId()
-  chatContainer.innerHTML += chatStripe(true, data.get('prompt'))
+  const uniqueId = generateUniqueId();
+  chatContainer.innerHTML += chatStripe(true, " ", uniqueId);
   // as we continue typing we want to continue seeing the message 
   chatContainer.scrollTop = chatContainer.scrollHeight; // This is going to put the new message in view
   // fetch the newly created div 
-  const messageDiv = document.getElementById(uniqueId)
+  const messageDiv = document.getElementById(uniqueId);
   // turn on the loader 
-  loader(messageDiv)
+  loader(messageDiv);
 
+  // fecth data from the server 
+  const response = await fetch('http://localhost:5000', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: data.get('prompt')
+    })
+  })
+  clearInterval(loadInterval)
+  messageDiv.innerHTML = " "
+
+  if (response.ok){
+    const data = await response.json();
+    const parsedData = data.bot.trim();
+
+    typeText(messageDiv, parsedData);
+  } else {
+    const error = await response.text();
+
+    messageDiv.innerHTML = "Something went wrong";
+    alert(error);
+  }
 
 }
 // To be able to see the changes we mae to our handleSubmit function, 
