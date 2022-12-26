@@ -84,7 +84,7 @@ const handleSubmit = async(event) => {
   loader(messageDiv);
 
   // fecth data from the server 
-  const response = await fetch('https://africode.onrender.com/', {
+  const response = await fetch('https://africode.onrender.com', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
