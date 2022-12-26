@@ -20,7 +20,7 @@ app.use(express.json());
 // create a dummy root route 
 app.get('/', async (req, resp) => {
     resp.status(200).send({
-        message: 'Hello from Codex',
+        message: 'Hello from AfriCode',
     })
 })
 
